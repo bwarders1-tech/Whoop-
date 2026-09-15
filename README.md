@@ -44,6 +44,21 @@ a refresh token. Without it the connection would stop working an hour after logi
 
 ## 2. Install
 
+### One command (macOS / Linux)
+
+```bash
+git clone -b claude/whoop-claude-extension-eyqib3 https://github.com/bwarders1-tech/Whoop-.git
+bash Whoop-/scripts/install.sh
+```
+
+The installer checks your Node version, builds the server, asks for the client ID and secret (the
+secret is not echoed) and writes them to a `0600` `.env`, runs the `doctor` checks, opens the WHOOP
+consent screen, registers the server with Claude Code if the `claude` CLI is on your PATH, and builds
+the Claude Desktop bundle. Re-running it is safe: existing credentials are kept and an existing
+`whoop` MCP registration is left alone. Use `--no-login` to set everything up without connecting yet.
+
+On Windows, or to do it by hand, follow the steps below.
+
 ### Claude Desktop (extension bundle)
 
 ```bash
