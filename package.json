@@ -1,0 +1,44 @@
+{
+  "name": "whoop-mcp-extension",
+  "version": "1.0.0",
+  "description": "Connect your WHOOP data to Claude: an MCP server / Claude Desktop Extension exposing recovery, sleep, strain, cycles and workouts.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=18.17"
+  },
+  "bin": {
+    "whoop-mcp": "dist/src/cli.js"
+  },
+  "main": "dist/src/index.js",
+  "files": [
+    "dist/src",
+    "manifest.json",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist build",
+    "start": "node dist/src/index.js",
+    "login": "node dist/src/cli.js login",
+    "test": "npm run build && node --test \"dist/test/*.test.js\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "bundle": "node scripts/bundle.mjs"
+  },
+  "keywords": [
+    "whoop",
+    "mcp",
+    "claude",
+    "model-context-protocol",
+    "health",
+    "fitness"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}

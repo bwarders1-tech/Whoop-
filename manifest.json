@@ -1,0 +1,91 @@
+{
+  "manifest_version": "0.3",
+  "name": "whoop",
+  "display_name": "WHOOP",
+  "version": "1.0.0",
+  "description": "Ask Claude about your WHOOP recovery, sleep, strain and workouts.",
+  "long_description": "Connects Claude to the WHOOP API v2 over OAuth 2.0. After a one-time browser login the extension can read your daily recovery scores (HRV, resting heart rate, SpO2, skin temperature), sleep activities with stage breakdowns and sleep performance, physiological cycles with day strain and calories, workouts with heart-rate zones, and your basic profile and body measurements. It also provides a one-call daily summary and a range summary with averages and trends. Tokens are stored locally and refreshed automatically; nothing is sent anywhere except api.prod.whoop.com.",
+  "author": {
+    "name": "whoop-mcp-extension contributors"
+  },
+  "license": "MIT",
+  "keywords": ["whoop", "health", "fitness", "sleep", "recovery", "strain", "training"],
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/index.js"],
+      "env": {
+        "WHOOP_CLIENT_ID": "${user_config.client_id}",
+        "WHOOP_CLIENT_SECRET": "${user_config.client_secret}",
+        "WHOOP_REDIRECT_URI": "${user_config.redirect_uri}",
+        "WHOOP_LOG_LEVEL": "${user_config.log_level}"
+      }
+    }
+  },
+  "user_config": {
+    "client_id": {
+      "type": "string",
+      "title": "WHOOP client ID",
+      "description": "Client ID of your app at developer-dashboard.whoop.com.",
+      "required": true,
+      "sensitive": false
+    },
+    "client_secret": {
+      "type": "string",
+      "title": "WHOOP client secret",
+      "description": "Client secret of the same WHOOP app.",
+      "required": true,
+      "sensitive": true
+    },
+    "redirect_uri": {
+      "type": "string",
+      "title": "Redirect URL",
+      "description": "Must match a redirect URL registered on your WHOOP app exactly.",
+      "required": false,
+      "default": "http://localhost:8788/callback",
+      "sensitive": false
+    },
+    "log_level": {
+      "type": "string",
+      "title": "Log level",
+      "description": "debug, info, warn, error or silent. Logs go to stderr only.",
+      "required": false,
+      "default": "info",
+      "sensitive": false
+    }
+  },
+  "tools": [
+    { "name": "whoop_auth_status", "description": "Check whether the WHOOP account is connected and when the token expires" },
+    { "name": "whoop_login", "description": "Start the WHOOP OAuth login and return the authorization URL" },
+    { "name": "whoop_logout", "description": "Delete the stored WHOOP tokens, optionally revoking the grant" },
+    { "name": "whoop_get_profile", "description": "Get the connected member's basic profile" },
+    { "name": "whoop_get_body_measurement", "description": "Get height, weight and max heart rate" },
+    { "name": "whoop_list_cycles", "description": "List physiological cycles with day strain and calories" },
+    { "name": "whoop_get_cycle", "description": "Get a single cycle by id" },
+    { "name": "whoop_list_recoveries", "description": "List recovery scores with HRV and resting heart rate" },
+    { "name": "whoop_get_cycle_recovery", "description": "Get the recovery attached to a cycle" },
+    { "name": "whoop_list_sleep", "description": "List sleeps and naps with stages and sleep performance" },
+    { "name": "whoop_get_sleep", "description": "Get a single sleep by id" },
+    { "name": "whoop_get_cycle_sleep", "description": "Get the sleep attached to a cycle" },
+    { "name": "whoop_list_workouts", "description": "List workouts with strain, heart rate and zone durations" },
+    { "name": "whoop_get_workout", "description": "Get a single workout by id" },
+    { "name": "whoop_daily_summary", "description": "Cycle, recovery, sleep and workouts for one day in a single call" },
+    { "name": "whoop_summarize_range", "description": "Averages, totals and best/worst days over a date range" }
+  ],
+  "prompts": [
+    {
+      "name": "whoop_morning_briefing",
+      "description": "Summarize today's recovery, sleep and suggested training load",
+      "text": "Use the WHOOP tools to build my morning briefing."
+    }
+  ],
+  "compatibility": {
+    "claude_desktop": ">=0.10.0",
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "node": ">=18.17.0"
+    }
+  }
+}
