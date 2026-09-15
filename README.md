@@ -84,10 +84,21 @@ claude mcp add whoop -- node "$PWD/dist/src/index.js" \
 
 ## 3. Connect your account
 
-Either ask Claude to run `whoop_login` and open the URL it returns, or do it once from a terminal:
+Put the credentials in a `.env` file once (it is gitignored, and the server also reads
+`~/.whoop-mcp/.env` or whatever `WHOOP_ENV_FILE` points at):
 
 ```bash
-WHOOP_CLIENT_ID=... WHOOP_CLIENT_SECRET=... node dist/src/cli.js login
+cp .env.example .env    # then fill in WHOOP_CLIENT_ID and WHOOP_CLIENT_SECRET
+```
+
+Values already present in the environment always win over the file, so an MCP client config keeps
+priority.
+
+Then either ask Claude to run `whoop_login` and open the URL it returns, or do it once from a
+terminal:
+
+```bash
+node dist/src/cli.js login
 ```
 
 Both routes open the WHOOP consent screen, catch the redirect on the loopback listener and write the
@@ -95,8 +106,22 @@ tokens to `~/.whoop-mcp/tokens.json` (mode `0600`). Access tokens are refreshed 
 this is a one-time step.
 
 ```bash
+node dist/src/cli.js doctor     # check settings, redirect port, connectivity and tokens
 node dist/src/cli.js status     # show the connection
 node dist/src/cli.js logout     # forget the tokens (--revoke also revokes the grant)
+```
+
+`doctor` is the fastest way to find a setup problem — it masks the secrets, checks that the redirect
+port is free, confirms that an unauthenticated request to WHOOP comes back `401` (anything else means
+a proxy is intercepting), and, once connected, makes a real API call:
+
+```
+Redirect port:  127.0.0.1:8788 is free
+API reachable:  yes (HTTP 401 from api.prod.whoop.com, as expected without a token)
+Connected:      yes (tokens from token-file)
+Live API call:  ok — connected as Ada Lovelace
+
+Everything checks out.
 ```
 
 ## Configuration
@@ -115,6 +140,7 @@ node dist/src/cli.js logout     # forget the tokens (--revoke also revokes the g
 | `WHOOP_LOGIN_TIMEOUT_MS` | `300000` | How long the callback listener waits |
 | `WHOOP_LOG_LEVEL` | `info` | `debug`, `info`, `warn`, `error`, `silent` — always to stderr |
 | `WHOOP_ACCESS_TOKEN` / `WHOOP_REFRESH_TOKEN` | — | Use tokens you already have instead of logging in |
+| `WHOOP_ENV_FILE` | `./.env`, then `~/.whoop-mcp/.env` | Settings file to read before the environment |
 
 ## Things worth knowing
 
@@ -138,13 +164,14 @@ node dist/src/cli.js logout     # forget the tokens (--revoke also revokes the g
 | Redirect mismatch on the consent screen | `WHOOP_REDIRECT_URI` and the URL registered on the WHOOP app must be byte-identical. |
 | Browser cannot reach the callback | Use `http://127.0.0.1:8788/callback` on both sides. |
 | Claude says it is not connected | Run `whoop_auth_status`; if `connected` is false, run `whoop_login`. |
+| Anything else | Run `node dist/src/cli.js doctor` — it names the broken link. |
 
 ## Development
 
 ```bash
 npm install
 npm run typecheck
-npm test          # 115 tests: unit, OAuth, API client, MCP tools, stdio + CLI end to end
+npm test          # 129 tests: unit, OAuth, API client, MCP tools, stdio + CLI end to end
 npm run bundle    # build/whoop.mcpb
 ```
 

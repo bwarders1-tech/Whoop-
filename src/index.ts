@@ -2,16 +2,19 @@
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
 import { loadConfig } from "./config.js";
+import { loadEnvFile } from "./envFile.js";
 import { logger } from "./logger.js";
 import { createWhoopServer, SERVER_VERSION } from "./server.js";
 
 async function main(): Promise<void> {
+  const envFile = loadEnvFile();
   const config = loadConfig();
   const { server } = createWhoopServer(config);
   const transport = new StdioServerTransport();
 
   await server.connect(transport);
   logger.info(`WHOOP MCP server ${SERVER_VERSION} ready`, {
+    envFile,
     apiBaseUrl: config.apiBaseUrl,
     tokenFile: config.tokenFile,
     clientConfigured: Boolean(config.clientId && config.clientSecret),

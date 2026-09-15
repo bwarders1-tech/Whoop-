@@ -7,6 +7,8 @@ import { spawn } from "node:child_process";
 
 import { AuthManager } from "./auth/authManager.js";
 import { loadConfig, requireOAuthCredentials } from "./config.js";
+import { runDoctor } from "./doctor.js";
+import { loadEnvFile } from "./envFile.js";
 import { describeError } from "./tools/shared.js";
 import { WhoopClient } from "./whoop/client.js";
 
@@ -16,7 +18,11 @@ Usage:
   whoop-mcp login     Authorize a WHOOP account and store the tokens
   whoop-mcp status    Show the current connection status
   whoop-mcp logout    Delete the stored tokens (add --revoke to revoke the grant)
+  whoop-mcp doctor    Check the settings, the redirect port, connectivity and the tokens
   whoop-mcp serve     Run the MCP server on stdio (what Claude launches)
+
+Settings are read from the environment, or from the first .env file found in
+the working directory or ~/.whoop-mcp/.env (WHOOP_ENV_FILE overrides both).
 
 Environment:
   WHOOP_CLIENT_ID, WHOOP_CLIENT_SECRET   Credentials from developer-dashboard.whoop.com
@@ -37,6 +43,7 @@ async function main(argv: string[]): Promise<number> {
     return 0;
   }
 
+  const envFile = loadEnvFile();
   const config = loadConfig();
   const auth = new AuthManager(config);
 
@@ -52,6 +59,12 @@ async function main(argv: string[]): Promise<number> {
       process.stdout.write(`\nConnected. Access token expires at ${status.expiresAt}.\n`);
       process.stdout.write(`Tokens stored in ${status.tokenFile}\n`);
       return 0;
+    }
+
+    case "doctor": {
+      const report = await runDoctor(config, auth, { envFile });
+      process.stdout.write(`${report.lines.join("\n")}\n`);
+      return report.ok ? 0 : 1;
     }
 
     case "status": {
