@@ -34,12 +34,13 @@ Everything is read-only apart from `whoop_login` and `whoop_logout`. The server 
 1. Sign in at [developer-dashboard.whoop.com](https://developer-dashboard.whoop.com) and create an app.
 2. Add the redirect URL **`http://localhost:8788/callback`** (or any loopback URL you prefer — it has
    to match the extension's `WHOOP_REDIRECT_URI` exactly).
-3. Request the scopes `offline`, `read:profile`, `read:body_measurement`, `read:cycles`,
-   `read:recovery`, `read:sleep`, `read:workout`.
+3. Tick all six scope checkboxes: `read:recovery`, `read:cycles`, `read:sleep`, `read:workout`,
+   `read:profile`, `read:body_measurement`.
 4. Copy the **client ID** and **client secret**.
 
-`offline` is what makes WHOOP issue a refresh token — without it the connection stops working an
-hour after you log in.
+There is deliberately no `offline` checkbox in the dashboard — `offline` is requested in the
+authorization request itself, and this extension always includes it, which is what makes WHOOP issue
+a refresh token. Without it the connection would stop working an hour after login.
 
 ## 2. Install
 
@@ -150,6 +151,10 @@ Everything checks out.
   `limit` you ask for (default 10, max 200) and hand back a cursor if more remain.
 - **Rate limits.** WHOOP allows roughly 100 requests/minute. 429s and 5xx responses are retried with
   exponential backoff and the `Retry-After` header.
+- **Refresh tokens rotate.** WHOOP invalidates the old refresh token as soon as a new one is issued,
+  and a second concurrent refresh would fail against the already-spent token. The server stores the
+  rotated token from every refresh response and serialises refreshes, so only one ever goes out even
+  when several tools ask for data at once.
 - **Privacy.** Tokens and data stay on your machine; the only outbound host is `api.prod.whoop.com`.
   `whoop_logout --revoke` removes the grant at WHOOP's end too.
 
