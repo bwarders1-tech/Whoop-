@@ -51,7 +51,18 @@ fi
 info "Node $NODE_VERSION"
 
 # --- 2. Source ---------------------------------------------------------------
-if [ -f "package.json" ] && node -p "require('./package.json').name" 2>/dev/null | grep -q "whoop-mcp-extension"; then
+# Prefer the checkout this script was run from, whatever the working directory,
+# so "bash somewhere/scripts/install.sh" never clones a second copy.
+is_checkout() { [ -f "$1/package.json" ] && grep -q '"name": "whoop-mcp-extension"' "$1/package.json" 2>/dev/null; }
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+if is_checkout "$SCRIPT_ROOT"; then
+  APP_DIR="$SCRIPT_ROOT"
+  cd "$APP_DIR"
+  say "Using the checkout in $APP_DIR"
+elif is_checkout "$PWD"; then
   APP_DIR="$PWD"
   say "Using the checkout in $APP_DIR"
 else
